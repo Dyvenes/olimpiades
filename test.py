@@ -35,7 +35,6 @@ class Neuron:
                     # Но все равно суммарное значение на родиель приходит слишком большое. Возможно нужно найти среднее ирфметическое или средневзвешанное.
                     self.parents[i][j].znach += self.znach * self.weight[i][j]
 
-
     def thinking(self):
 
         # процесс обработки сигнала. Импульс идет с начала от самого последнего (выходного)
@@ -92,30 +91,62 @@ for i in range(len(neurons)):
                 # в нейрон записывается значение весов для следующего слоя (у каждого родителя свой вес). Слой индексируется i. Неронка 3-х мерная.
                 neurons[i][j][k] = Neuron(np.random.rand(3, 3), [neurons[i + 1]])
 
-inp = 'я не что'.split()
-for i in range(len(inp)):
-    # в зависимости на каком месте i стоит конкретное слово (dictionary.index(inp[i])) полученый нерон возбуждается
-    neurons[0][i][dictionary.index(inp[i])].znach = 1
 
-for k in neurons:
-    for i in k:
-        for j in i:
-            j.send_inpuls()
+def work_neur():
+    inp = 'я не что'.split()
+    for i in range(len(inp)):
+        # в зависимости на каком месте i стоит конкретное слово (dictionary.index(inp[i])) полученый нерон возбуждается
+        neurons[0][i][dictionary.index(inp[i])].znach = 1
 
-answ = [[] for i in range(3)]
+    for k in neurons:
+        for i in k:
+            for j in i:
+                j.send_inpuls()
+
+    answ = [[] for i in range(3)]
+    for i in range(len(neurons[-1])):
+        for j in range(len(neurons[-1][i])):
+            zn = neurons[-1][i][j].znach
+            if neurons[-1][i][j].znach >= 0.7:
+                answ[i].append(dictionary[j])
+    for i in answ:
+        if i:
+            print(random.choice(i), end=' ')
+        else:
+            print(None, end=' ')
+    print()
+
+
+for i in range(1):
+    work_neur()
+
+right_answ = 'что не что'.split()
+right_matrix = []
+for i in range(len(right_answ)):
+    right_matrix.append([])
+    for j in range(len(dictionary)):
+        right_matrix[i].append(0)
+    # создается матрица правильных ответов в которой отмечается какое слово должно стоять на i позиции
+    right_matrix[i][dictionary.index(right_answ[i])] = 1
+
+mistake_matrix = []
 for i in range(len(neurons[-1])):
+    mistake_matrix.append([])
     for j in range(len(neurons[-1][i])):
-        zn = neurons[-1][i][j].znach
-        if neurons[-1][i][j].znach >= 0.7:
-            answ[i].append(dictionary[j])
-for i in answ:
-    if i:
-        print(random.choice(i), end=' ')
-    else:
-        print(None, end=' ')
-print()
-print()
-pretty_print(neurons, 'znach')
+        # создавется матрица ошибки первого слоя. Из ответов неронки выитается правильный.
+        mistake_matrix[i].append(neurons[-1][i][j].znach - right_matrix[i][j])
+
+swap_matrix = []
+for i in range(len(neurons[-2])):
+    swap_matrix.append([])
+    for j in range(len(neurons[-2][i])):
+        parent = neurons[-2][i][j].parents
+        mistake = 0
+        for k in range(len(parent)):
+            for l in range(len(parent[k])):
+                mistake += parent[k][l] * mistake_matrix[k][l]
+        swap_matrix[i].append(mistake)
+        neurons[-2][i][j].weights
 
 # for i in range(4):  # степень
 #     massiv.append([])
